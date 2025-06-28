@@ -30,6 +30,9 @@ mamba create -n fastai python=3.10 fastai jupyterlab -c fastai -c pytorch -c con
 echo "🚀 Activating FastAI environment..."
 mamba activate fastai
 
+echo "⚙️ Installing PyTorch with CUDA support..."
+mamba install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y
+
 echo "🧪 Installing FiftyOne (via pip)..."
 pip install fiftyone
 
