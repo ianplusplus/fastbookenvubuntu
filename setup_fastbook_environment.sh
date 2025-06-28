@@ -4,6 +4,12 @@ set -e
 echo "🔧 Updating system packages..."
 sudo apt update && sudo apt upgrade -y
 
+echo "🧰 Installing recommended NVIDIA driver..."
+sudo apt update
+sudo apt install -y ubuntu-drivers-common
+sudo ubuntu-drivers autoinstall
+echo "✅ NVIDIA driver installed. Please reboot your system to enable GPU support."
+
 echo "📦 Downloading Miniconda installer..."
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
 
