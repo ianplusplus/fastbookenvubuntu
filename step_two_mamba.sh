@@ -1,5 +1,7 @@
 #install mamba
 
+source ~/.bashrc
+
 conda install mamba -n base -c conda-forge
 
 #create an environment for fastai
