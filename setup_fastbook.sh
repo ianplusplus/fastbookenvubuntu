@@ -56,10 +56,10 @@ echo ">> Creating Conda environment from environment.yml..."
 mamba env create -y -f environment.yml -n fastbook-env || \
 mamba env update -y -f environment.yml -n fastbook-env
 
-# Step 10: Activate environment, ensure ipykernel is installed, and register Jupyter kernel
-echo ">> Activating environment and registering Jupyter kernel..."
+# Step 10: Activate environment, install Jupyter components, and register kernel
+echo ">> Activating environment and installing Jupyter tools..."
 conda activate fastbook-env
-mamba install -y ipykernel
+mamba install -y ipykernel notebook nbconvert
 python -m ipykernel install --user --name fastbook-env --display-name "Python (fastbook)"
 
 # Step 11: Run test notebook
