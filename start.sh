@@ -53,17 +53,20 @@ conda config --set channel_priority strict
 
 # Step 9: Create environment from environment.yml
 echo ">> Creating Conda environment from environment.yml..."
-mamba env create -y -f environment.yml -n fastbook-env || mamba env update -y -f environment.yml -n fastbook-env
+mamba env create -y -f environment.yml -n fastbook-env || true
+mamba env update -y -f environment.yml -n fastbook-env
 
 # Step 10: Activate environment, install Jupyter components, and register kernel
 echo ">> Activating environment and installing Jupyter tools..."
 conda activate fastbook-env
 mamba install -y ipykernel notebook nbconvert
 
-# Step 11: Install fastbook
-echo ">> Installing fastbook..."
-mamba install -y -c fastai fastbook
 python -m ipykernel install --user --name fastbook-env --display-name "Python (fastbook)"
+
+# Step 11: Install fastbook and compatible dependencies
+echo ">> Installing fastbook and compatible dependencies..."
+mamba install -y -c fastai fastbook
+mamba install -y -c conda-forge 'graphviz=0.20.1' 'python-graphviz=0.20.1' 'sentencepiece<0.1.90'
 
 echo ""
 echo "✅ Fastbook setup complete!"
@@ -71,4 +74,4 @@ echo "To begin working:"
 echo "    conda activate fastbook-env"
 echo "    jupyter notebook"
 echo ""
-echo "🚀 Reboot your system now to finalize NVIDIA driver installation and enable GPU support."
+echo "🚀 You may reboot now to finalize NVIDIA driver installation."
