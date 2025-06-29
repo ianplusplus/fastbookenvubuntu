@@ -39,6 +39,7 @@ echo "📚 Creating FastAI env..."
 mamba create -n fastai python=3.10 -y -c conda-forge
 
 echo "🚀 Activating env..."
+eval "$($HOME/miniconda/bin/conda shell.bash hook)"
 conda activate fastai
 
 # --- Install FastAI + JupyterLab + PyTorch + CUDA ---
