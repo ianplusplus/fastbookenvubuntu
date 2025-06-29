@@ -44,7 +44,7 @@ conda activate fastai
 
 # --- Install FastAI + JupyterLab + PyTorch + CUDA ---
 echo "📦 Installing FastAI, JupyterLab, PyTorch w/ CUDA (with NumPy <2)..."
-mamba install fastai jupyterlab numpy<2 -c fastai -c conda-forge -y
+mamba install fastai jupyterlab "numpy<2" -c fastai -c conda-forge -y
 mamba install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y
 
 # --- Install Fastbook Python package ---
@@ -66,7 +66,11 @@ python -m ipykernel install --user --name fastai --display-name "Python (fastai)
 # --- Clone fastbook notebook repo ---
 echo "📁 Cloning fastbook repo with notebooks..."
 BOOK_DIR=~/fastbook
-git clone https://github.com/fastai/fastbook.git "$BOOK_DIR"
+if [ ! -d "$BOOK_DIR" ]; then
+  git clone https://github.com/fastai/fastbook.git "$BOOK_DIR"
+else
+  echo "Fastbook directory already exists. Skipping clone."
+fi
 
 # --- Download datasets ---
 echo "📦 Downloading datasets (using setup_book)..."
