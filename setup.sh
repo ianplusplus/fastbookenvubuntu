@@ -1,61 +1,66 @@
 #!/bin/bash
+set -euo pipefail
 
-set -e
+ENV_NAME="fastai"
 
-echo "🚀 FastBook Setup Script (Ubuntu + GPU + Conda + fastai)"
+echo "🔧 Updating system packages..."
+sudo apt update && sudo apt upgrade -y
 
-# 1. Check & Install Miniconda
-if ! command -v conda &> /dev/null; then
-    echo "🔧 Installing Miniconda..."
-    cd /tmp
-    curl -LO https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-    bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda
-    export PATH="$HOME/miniconda/bin:$PATH"
-    echo 'export PATH="$HOME/miniconda/bin:$PATH"' >> ~/.bashrc
-    source ~/.bashrc
-else
-    echo "✅ Miniconda already installed"
-fi
+echo "🧰 Installing NVIDIA drivers (if needed)..."
+sudo apt install -y ubuntu-drivers-common
+sudo ubuntu-drivers autoinstall
 
-# 2. Install Mamba for faster conda ops
-echo "🔧 Installing Mamba..."
-conda install -y -n base -c conda-forge mamba
+echo "✅ NVIDIA driver setup complete. Please reboot after this script finishes."
 
-# 3. Create fastai environment
-echo "🔧 Creating 'fastai' Conda environment..."
-mamba create -n fastai -y python=3.10 pip
+echo "📦 Downloading Miniconda..."
+wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
 
-# 4. Activate environment
-source ~/miniconda/bin/activate fastai
+echo "💾 Installing Miniconda..."
+bash ~/miniconda.sh -b -p $HOME/miniconda
+rm ~/miniconda.sh
 
-# 5. Install PyTorch with CUDA
-echo "🔥 Installing PyTorch with CUDA..."
-mamba install -y -c pytorch -c nvidia pytorch torchvision torchaudio pytorch-cuda=12.1
+echo "🔄 Initializing Conda..."
+eval "$($HOME/miniconda/bin/conda shell.bash hook)"
+$HOME/miniconda/bin/conda init
+source ~/.bashrc
 
-# 6. Install fastai + fastbook + common deps
-echo "📘 Installing fastai + fastbook..."
-mamba install -y -c fastai -c conda-forge fastai jupyter matplotlib scikit-learn pandas ipywidgets
-pip install fastbook
+echo "⚡ Installing Mamba..."
+conda install -n base -c conda-forge mamba -y
+eval "$(mamba shell hook --shell bash)"
 
-# 7. Fix NumPy incompat if needed
-echo "⚠️ Checking NumPy version compatibility..."
-pip install "numpy<2"
+echo "🧹 Removing existing '$ENV_NAME' environment (if exists)..."
+conda remove -n $ENV_NAME --all -y || true
 
-# 8. GPU Check
-echo "🧪 Verifying CUDA GPU:"
-python -c "import torch; print('CUDA available:', torch.cuda.is_available()); print('GPU:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None')"
+echo "📚 Creating Conda environment '$ENV_NAME'..."
+mamba create -n $ENV_NAME python=3.10 -y -c conda-forge
+conda activate $ENV_NAME
 
-# 9. NVIDIA Driver Check & Install
-echo "🧰 Checking for NVIDIA driver..."
-if ! command -v nvidia-smi &> /dev/null; then
-    echo "🔧 Installing NVIDIA driver (will auto-select recommended)..."
-    sudo apt update
-    sudo apt install -y ubuntu-drivers-common
-    sudo ubuntu-drivers install
-    echo "⚠️ NVIDIA driver installed. Please reboot your computer now."
-else
-    echo "✅ NVIDIA driver already installed: $(nvidia-smi --query-gpu=driver_version --format=csv,noheader)"
-fi
+echo "📦 Installing FastAI, FastBook, JupyterLab, and core dependencies..."
+mamba install -y -c fastai -c conda-forge fastai fastbook jupyterlab ipywidgets matplotlib scikit-learn pandas
 
-echo "✅ Setup complete! To activate your environment later, run:"
-echo "   conda activate fastai"
+echo "⚙️ Installing GPU-enabled PyTorch (CUDA 12.1)..."
+mamba install -y -c pytorch -c nvidia \
+    pytorch=2.2 torchvision=0.17 torchaudio pytorch-cuda=12.1
+
+echo "🧪 Installing FiftyOne..."
+pip install --upgrade pip
+pip install fiftyone
+
+echo "🔗 Registering environment kernel for Jupyter..."
+python -m ipykernel install --user --name $ENV_NAME --display-name "Python ($ENV_NAME)"
+
+echo "📚 Downloading FastBook datasets..."
+python -c "from fastbook import *; setup_book()"
+
+echo "🌀 Initializing Mamba for future shell sessions..."
+mamba shell init --shell bash --root-prefix=$HOME/.local/share/mamba
+
+echo ""
+echo "✅ All done! Your GPU-powered FastBook + FastAI + FiftyOne environment is ready."
+echo "🔁 Please reboot your machine now to activate NVIDIA drivers if this is the first install."
+echo ""
+echo "🚀 To start working:"
+echo "   conda activate $ENV_NAME"
+echo "   jupyter lab --ip=0.0.0.0 --port=8888 --no-browser"
+echo ""
+echo "💡 FastBook notebooks are now ready to use — run them without errors!"
