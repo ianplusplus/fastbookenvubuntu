@@ -2,6 +2,8 @@
 *** NEEDS TO BE RUN CURRENTLY AFTER THE SCRIPT RUNS ***
 mamba install "numpy<2" -y
 
+*** The system needs to be rebooted to allow the nvidia drivers to be loaded and then you must run "conda activate fastai"  ***
+
 1. System Update and Upgrade
 Updates Ubuntu package lists and upgrades installed packages to their latest versions.
 
