@@ -29,35 +29,40 @@ eval "$($HOME/anaconda3/bin/conda shell.bash hook)"
 conda init
 source ~/.bashrc
 
-# Step 5: Install Mamba
-echo ">> Installing Mamba..."
-conda install -y -n base -c conda-forge mamba
+# Step 5: Configure conda to always confirm
+echo ">> Setting conda to always confirm..."
+conda config --set always_yes true
 
-# Step 6: Clone fastbook
+# Step 6: Install Mamba
+echo ">> Installing Mamba..."
+conda install -n base -c conda-forge mamba
+
+# Step 7: Clone fastbook
 echo ">> Cloning fastbook repository..."
 cd $HOME
-git clone https://github.com/fastai/fastbook.git
+git clone https://github.com/fastai/fastbook.git || (cd fastbook && git pull)
 cd fastbook
 
-# Step 7: Configure channels (strict priority)
-echo ">> Configuring Conda channels..."
+# Step 8: Configure Conda channels with strict priority
+echo ">> Configuring Conda channels with strict priority..."
 conda config --add channels conda-forge
 conda config --add channels fastai
 conda config --add channels pytorch
 conda config --add channels defaults
 conda config --set channel_priority strict
 
-# Step 8: Create environment from environment.yml
+# Step 9: Create environment from environment.yml
 echo ">> Creating Conda environment from environment.yml..."
-mamba env create -f environment.yml -n fastbook-env || \
-mamba env update -f environment.yml -n fastbook-env
+mamba env create -y -f environment.yml -n fastbook-env || \
+mamba env update -y -f environment.yml -n fastbook-env
 
-# Step 9: Activate environment and register Jupyter kernel
+# Step 10: Activate environment, ensure ipykernel is installed, and register Jupyter kernel
 echo ">> Activating environment and registering Jupyter kernel..."
 conda activate fastbook-env
+mamba install -y ipykernel
 python -m ipykernel install --user --name fastbook-env --display-name "Python (fastbook)"
 
-# Step 10: Run test notebook
+# Step 11: Run test notebook
 echo ">> Testing setup with clean.ipynb..."
 jupyter nbconvert --to notebook --execute clean.ipynb --output test_output.ipynb
 
