@@ -20,68 +20,70 @@ chmod +x ~/miniconda.sh
 bash ~/miniconda.sh -b -p $HOME/miniconda
 rm ~/miniconda.sh
 
-echo "🔄 Initializing Conda..."
+echo "🔄 Initializing Conda shell..."
 eval "$($HOME/miniconda/bin/conda shell.bash hook)"
 $HOME/miniconda/bin/conda init
 source ~/.bashrc
 
 # --- Install Mamba ---
 echo "⚡ Installing Mamba..."
-conda install -n base -c conda-forge mamba -y
+mamba install -n base -c conda-forge mamba -y
 eval "$(mamba shell hook --shell bash)"
+
+# Optional: Install nodejs for JupyterLab extensions to avoid warnings
+echo "🌐 Installing NodeJS for JupyterLab..."
+mamba install -n base -c conda-forge nodejs -y
 
 # --- Clean Existing Env ---
 echo "🧹 Removing old fastai env if exists..."
-conda remove -n fastai --all -y || true
+mamba remove -n fastai --all -y || true
 
 # --- Create New Env ---
 echo "📚 Creating FastAI env..."
 mamba create -n fastai python=3.10 -y -c conda-forge
 
-echo "🚀 Activating env..."
+echo "🚀 Activating fastai environment..."
 eval "$($HOME/miniconda/bin/conda shell.bash hook)"
 conda activate fastai
 
-# --- Install FastAI + JupyterLab + PyTorch + CUDA ---
-echo "📦 Installing FastAI, JupyterLab, PyTorch w/ CUDA (with NumPy <2)..."
-mamba install fastai jupyterlab "numpy<2" -c fastai -c conda-forge -y
-mamba install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y
+# --- Remove any existing PyTorch before reinstalling ---
+echo "🧹 Removing old PyTorch packages if any..."
+mamba remove pytorch torchvision torchaudio pytorch-cuda -y || true
 
-# --- Install Fastbook Python package ---
+# --- Install FastAI + JupyterLab + PyTorch + CUDA ---
+echo "📦 Installing FastAI, JupyterLab, PyTorch w/ CUDA (NumPy <2)..."
+mamba install fastai jupyterlab "numpy<2" -c fastai -c conda-forge -y
+mamba install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y --force-reinstall
+
+# --- Continue with pip installs ---
 echo "📘 Installing fastbook..."
 pip install fastbook --quiet
 
-# --- Install FiftyOne via pip ---
 echo "🧪 Installing FiftyOne..."
 pip install fiftyone --quiet
 
-# --- Confirm NumPy version to avoid compatibility crash ---
 echo "🔍 Confirming NumPy version..."
 python -c "import numpy; print('✅ NumPy version in use:', numpy.__version__)"
 
-# --- Register kernel with Jupyter ---
 echo "🔗 Registering environment kernel for Jupyter..."
 python -m ipykernel install --user --name fastai --display-name "Python (fastai)"
 
-# --- Clone fastbook notebook repo ---
-echo "📁 Cloning fastbook repo with notebooks..."
+# --- Clone fastbook repo only if not exists ---
 BOOK_DIR=~/fastbook
 if [ ! -d "$BOOK_DIR" ]; then
+  echo "📁 Cloning fastbook repo with notebooks..."
   git clone https://github.com/fastai/fastbook.git "$BOOK_DIR"
 else
   echo "Fastbook directory already exists. Skipping clone."
 fi
 
-# --- Download datasets ---
 echo "📦 Downloading datasets (using setup_book)..."
 cd "$BOOK_DIR"
 conda run -n fastai python -c "from fastbook import *; setup_book()"
 
-# --- Mamba Shell Config ---
 echo "🌀 Setting up Mamba shell config..."
 mamba shell init --shell bash --root-prefix=$HOME/.local/share/mamba
 
-# --- Done ---
 echo ""
 echo "✅ FastAI + Fastbook environment is ready!"
 echo "🔁 Please REBOOT your machine now to activate the NVIDIA driver."
