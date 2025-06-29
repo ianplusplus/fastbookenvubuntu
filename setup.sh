@@ -42,8 +42,8 @@ echo "🚀 Activating env..."
 conda activate fastai
 
 # --- Install FastAI + JupyterLab + PyTorch + CUDA ---
-echo "📦 Installing FastAI, JupyterLab, PyTorch w/ CUDA..."
-mamba install fastai jupyterlab -c fastai -c conda-forge -y
+echo "📦 Installing FastAI, JupyterLab, PyTorch w/ CUDA (with NumPy <2)..."
+mamba install fastai jupyterlab numpy<2 -c fastai -c conda-forge -y
 mamba install pytorch=2.2 torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y
 
 # --- Install Fastbook Python package ---
@@ -53,6 +53,10 @@ pip install fastbook --quiet
 # --- Install FiftyOne via pip ---
 echo "🧪 Installing FiftyOne..."
 pip install fiftyone --quiet
+
+# --- Confirm NumPy version to avoid compatibility crash ---
+echo "🔍 Confirming NumPy version..."
+python -c "import numpy; print('✅ NumPy version in use:', numpy.__version__)"
 
 # --- Register kernel with Jupyter ---
 echo "🔗 Registering environment kernel for Jupyter..."
