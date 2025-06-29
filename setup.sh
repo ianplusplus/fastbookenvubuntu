@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ENV_NAME="fastai"
+BOOK_DIR="$HOME/fastbook"
 
 echo "🔧 Updating system packages..."
 sudo apt update && sudo apt upgrade -y
@@ -35,7 +36,7 @@ echo "📚 Creating Conda environment '$ENV_NAME'..."
 mamba create -n $ENV_NAME python=3.10 -y -c conda-forge
 conda activate $ENV_NAME
 
-echo "📦 Installing FastAI, FastBook, JupyterLab, and core dependencies..."
+echo "📦 Installing FastAI, FastBook, and JupyterLab..."
 mamba install -y -c fastai -c conda-forge fastai fastbook jupyterlab ipywidgets matplotlib scikit-learn pandas
 
 echo "⚙️ Installing GPU-enabled PyTorch (CUDA 12.1)..."
@@ -49,7 +50,14 @@ pip install fiftyone
 echo "🔗 Registering environment kernel for Jupyter..."
 python -m ipykernel install --user --name $ENV_NAME --display-name "Python ($ENV_NAME)"
 
-echo "📚 Downloading FastBook datasets..."
+echo "📁 Cloning fastbook repo with notebooks..."
+git clone https://github.com/fastai/fastbook.git "$BOOK_DIR" || {
+    echo "📁 fastbook directory already exists. Pulling latest changes..."
+    cd "$BOOK_DIR" && git pull
+}
+
+echo "📦 Downloading datasets (using setup_book)..."
+cd "$BOOK_DIR"
 python -c "from fastbook import *; setup_book()"
 
 echo "🌀 Initializing Mamba for future shell sessions..."
@@ -57,10 +65,10 @@ mamba shell init --shell bash --root-prefix=$HOME/.local/share/mamba
 
 echo ""
 echo "✅ All done! Your GPU-powered FastBook + FastAI + FiftyOne environment is ready."
-echo "🔁 Please reboot your machine now to activate NVIDIA drivers if this is the first install."
+echo "📘 Notebooks are in: $BOOK_DIR"
+echo "🔁 Please reboot your machine now to activate NVIDIA drivers (if this is the first time)."
 echo ""
 echo "🚀 To start working:"
 echo "   conda activate $ENV_NAME"
-echo "   jupyter lab --ip=0.0.0.0 --port=8888 --no-browser"
-echo ""
-echo "💡 FastBook notebooks are now ready to use — run them without errors!"
+echo "   cd ~/fastbook"
+echo "   jupyter lab"
