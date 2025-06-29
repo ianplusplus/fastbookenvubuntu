@@ -34,24 +34,21 @@ conda remove -n $ENV_NAME --all -y || true
 echo "📚 Creating Conda environment '$ENV_NAME'..."
 mamba create -n $ENV_NAME python=3.10 -y -c conda-forge
 
-echo "🚀 Activating environment '$ENV_NAME'..."
-conda activate $ENV_NAME
-
 echo "📦 Installing FastAI, FastBook, JupyterLab, and dependencies..."
-mamba install -y -c fastai -c conda-forge fastai fastbook jupyterlab ipywidgets matplotlib scikit-learn pandas
+mamba install -n $ENV_NAME -y -c fastai -c conda-forge fastai fastbook jupyterlab ipywidgets matplotlib scikit-learn pandas
 
 echo "⚙️ Installing GPU-enabled PyTorch (CUDA 12.1)..."
-mamba install -y -c pytorch -c nvidia pytorch=2.2 torchvision=0.17 torchaudio pytorch-cuda=12.1
+mamba install -n $ENV_NAME -y -c pytorch -c nvidia pytorch=2.2 torchvision=0.17 torchaudio pytorch-cuda=12.1
 
 echo "🧪 Installing FiftyOne..."
-pip install --upgrade pip
-pip install fiftyone
+conda run -n $ENV_NAME pip install --upgrade pip
+conda run -n $ENV_NAME pip install fiftyone
 
 echo "🔗 Registering environment kernel for Jupyter..."
-python -m ipykernel install --user --name $ENV_NAME --display-name "Python ($ENV_NAME)"
+conda run -n $ENV_NAME python -m ipykernel install --user --name $ENV_NAME --display-name "Python ($ENV_NAME)"
 
 echo "📚 Downloading FastBook datasets..."
-python -c "from fastbook import *; setup_book()"
+conda run -n $ENV_NAME python -c "from fastbook import *; setup_book()"
 
 echo "🌀 Initializing Mamba for future shell sessions..."
 mamba shell init --shell bash --root-prefix=$HOME/.local/share/mamba
