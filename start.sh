@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-echo "=== Fastbook Setup Script for Ubuntu ==="
+echo "=== Fastbook Setup Script for Ubuntu (Python 3.10) ==="
 
 # Step 1: Update system
 echo ">> Updating system..."
@@ -16,7 +16,7 @@ sudo apt install -y build-essential dkms
 # Step 3: Install wget and git
 sudo apt install -y wget git
 
-# Step 4: Install Anaconda (if not already installed)
+# Step 4: Install Anaconda
 ANACONDA_INSTALLER=Anaconda3-2024.02-1-Linux-x86_64.sh
 if [ ! -f "$ANACONDA_INSTALLER" ]; then
     echo ">> Downloading Anaconda..."
@@ -29,8 +29,8 @@ eval "$($HOME/anaconda3/bin/conda shell.bash hook)"
 conda init
 source ~/.bashrc
 
-# Step 5: Configure conda to always confirm
-echo ">> Setting conda to always confirm..."
+# Step 5: Configure conda
+echo ">> Setting conda defaults..."
 conda config --set always_yes true
 
 # Step 6: Install Mamba
@@ -41,37 +41,32 @@ conda install -n base -c conda-forge mamba
 echo ">> Cloning fastbook repository..."
 cd $HOME
 git clone https://github.com/fastai/fastbook.git || (cd fastbook && git pull)
-cd fastbook
 
-# Step 8: Configure Conda channels with strict priority
-echo ">> Configuring Conda channels with strict priority..."
+# Step 8: Configure Conda channels
+echo ">> Configuring Conda channels..."
 conda config --add channels conda-forge
 conda config --add channels fastai
 conda config --add channels pytorch
-conda config --add channels defaults
 conda config --set channel_priority strict
 
-# Step 9: Create environment from environment.yml
-echo ">> Creating Conda environment from environment.yml..."
-mamba env create -y -f environment.yml -n fastbook-env || true
-mamba env update -y -f environment.yml -n fastbook-env
+# Step 9: Create environment
+echo ">> Creating Conda environment: fastbook-env (Python 3.10)"
+mamba create -n fastbook-env python=3.10 -y
 
-# Step 10: Activate environment, install Jupyter components, and register kernel
-echo ">> Activating environment and installing Jupyter tools..."
+# Step 10: Activate environment and install packages
+echo ">> Installing core packages..."
 conda activate fastbook-env
-mamba install -y ipykernel notebook nbconvert
+mamba install -y fastbook fastai jupyter notebook ipykernel nbconvert graphviz "sentencepiece<0.1.90"
 
+# Step 11: Register Jupyter kernel
+echo ">> Registering Jupyter kernel..."
 python -m ipykernel install --user --name fastbook-env --display-name "Python (fastbook)"
 
-# Step 11: Install fastbook and compatible dependencies
-echo ">> Installing fastbook and compatible dependencies..."
-mamba install -y -c fastai fastbook
-mamba install -y -c conda-forge 'graphviz=0.20.1' 'python-graphviz=0.20.1' 'sentencepiece<0.1.90'
-
 echo ""
-echo "✅ Fastbook setup complete!"
+echo "✅ Fastbook environment setup complete!"
+echo ""
 echo "To begin working:"
 echo "    conda activate fastbook-env"
 echo "    jupyter notebook"
 echo ""
-echo "🚀 You may reboot now to finalize NVIDIA driver installation."
+echo "🚀 Please reboot your system to enable GPU support (if drivers were installed)."
