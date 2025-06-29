@@ -59,11 +59,11 @@ mamba env create -y -f environment.yml -n fastbook-env || mamba env update -y -f
 echo ">> Activating environment and installing Jupyter tools..."
 conda activate fastbook-env
 mamba install -y ipykernel notebook nbconvert
-python -m ipykernel install --user --name fastbook-env --display-name "Python (fastbook)"
 
-# Step 11: Run test notebook (01_intro.ipynb from fastbook repo)
-echo ">> Testing setup with 01_intro.ipynb..."
-jupyter nbconvert --to notebook --execute 01_intro.ipynb --output test_output.ipynb --allow-errors
+# Step 11: Install fastbook
+echo ">> Installing fastbook..."
+mamba install -y -c fastai fastbook
+python -m ipykernel install --user --name fastbook-env --display-name "Python (fastbook)"
 
 echo ""
 echo "✅ Fastbook setup complete!"
@@ -71,4 +71,4 @@ echo "To begin working:"
 echo "    conda activate fastbook-env"
 echo "    jupyter notebook"
 echo ""
-echo "🚀 You may reboot now to finalize NVIDIA driver installation."
+echo "🚀 Reboot your system now to finalize NVIDIA driver installation and enable GPU support."
