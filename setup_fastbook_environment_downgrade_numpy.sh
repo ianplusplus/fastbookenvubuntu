@@ -40,13 +40,10 @@ echo "📦 Installing FastAI and JupyterLab..."
 mamba install fastai jupyterlab -c fastai -c conda-forge -y
 
 echo "⚙️ Installing GPU-enabled PyTorch (CUDA 12.1)..."
-mamba install pytorch=2.2 torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y
+mamba create -n fastai python=3.10 numpy=1.26 fastai jupyterlab -c fastai -c pytorch -c conda-forge -y
 
 echo "🧪 Installing FiftyOne via pip..."
 pip install fiftyone
-
-echo "🔧 Downgrading NumPy to <2 for compatibility..."
-mamba install "numpy<2" -y
 
 echo "🔗 Registering environment for Jupyter..."
 python -m ipykernel install --user --name fastai --display-name "Python (fastai)"
