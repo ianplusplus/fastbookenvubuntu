@@ -37,15 +37,17 @@ mamba create -n $ENV_NAME python=3.10 -y -c conda-forge
 echo "🚀 Activating environment '$ENV_NAME'..."
 conda activate $ENV_NAME
 
-echo "📦 Installing core Python scientific stack..."
-mamba install -y -c conda-forge jupyterlab ipywidgets matplotlib scikit-learn pandas
+echo "⚙️ Installing GPU-enabled PyTorch (CUDA 12.1)..."
+mamba install -y -c pytorch -c nvidia \
+    pytorch=2.2.2 torchvision=0.17.2 torchaudio=2.2.2 pytorch-cuda=12.1
 
-echo "🐍 Installing FastAI and FastBook via pip (reliable method)..."
+echo "🐍 Installing FastAI and FastBook via pip..."
 pip install --upgrade pip
+pip install "numpy<2"  # Avoid compatibility issues
 pip install fastai fastbook
 
-echo "⚙️ Installing GPU-enabled PyTorch (CUDA 12.1)..."
-mamba install -y -c pytorch -c nvidia pytorch=2.2 torchvision=0.17 torchaudio pytorch-cuda=12.1
+echo "📦 Installing JupyterLab and data science libraries..."
+mamba install -y -c conda-forge jupyterlab ipywidgets matplotlib scikit-learn pandas
 
 echo "🧪 Installing FiftyOne..."
 pip install fiftyone
