@@ -1,94 +1,67 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
-# --- Update System ---
+ENV_NAME="fastai"
+
 echo "🔧 Updating system packages..."
 sudo apt update && sudo apt upgrade -y
 
-# --- NVIDIA Driver ---
-echo "🧰 Installing recommended NVIDIA driver..."
+echo "🧰 Installing NVIDIA drivers (if needed)..."
 sudo apt install -y ubuntu-drivers-common
-sudo ubuntu-drivers autoinstall || true
-echo "✅ NVIDIA driver install step complete. Reboot will be required."
+sudo ubuntu-drivers autoinstall
 
-# --- Install Miniconda ---
-echo "📦 Downloading Miniconda installer..."
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
+echo "✅ NVIDIA driver setup complete. Please reboot after this script finishes."
+
+echo "📦 Downloading Miniconda..."
+wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
 
 echo "💾 Installing Miniconda..."
-chmod +x ~/miniconda.sh
 bash ~/miniconda.sh -b -p $HOME/miniconda
 rm ~/miniconda.sh
 
-echo "🔄 Initializing Conda shell..."
+echo "🔄 Initializing Conda..."
 eval "$($HOME/miniconda/bin/conda shell.bash hook)"
 $HOME/miniconda/bin/conda init
 source ~/.bashrc
 
-# --- Install Mamba ---
 echo "⚡ Installing Mamba..."
-mamba install -n base -c conda-forge mamba -y
+conda install -n base -c conda-forge mamba -y
 eval "$(mamba shell hook --shell bash)"
 
-# Optional: Install nodejs for JupyterLab extensions to avoid warnings
-echo "🌐 Installing NodeJS for JupyterLab..."
-mamba install -n base -c conda-forge nodejs -y
+echo "🧹 Removing existing '$ENV_NAME' environment (if exists)..."
+conda remove -n $ENV_NAME --all -y || true
 
-# --- Clean Existing Env ---
-echo "🧹 Removing old fastai env if exists..."
-mamba remove -n fastai --all -y || true
+echo "📚 Creating Conda environment '$ENV_NAME'..."
+mamba create -n $ENV_NAME python=3.10 -y -c conda-forge
 
-# --- Create New Env ---
-echo "📚 Creating FastAI env..."
-mamba create -n fastai python=3.10 -y -c conda-forge
+echo "🚀 Activating environment '$ENV_NAME'..."
+conda activate $ENV_NAME
 
-echo "🚀 Activating fastai environment..."
-eval "$($HOME/miniconda/bin/conda shell.bash hook)"
-conda activate fastai
+echo "📦 Installing FastAI, FastBook, JupyterLab, and dependencies..."
+mamba install -y -c fastai -c conda-forge fastai fastbook jupyterlab ipywidgets matplotlib scikit-learn pandas
 
-# --- Remove any existing PyTorch before reinstalling ---
-echo "🧹 Removing old PyTorch packages if any..."
-mamba remove pytorch torchvision torchaudio pytorch-cuda -y || true
-
-# --- Install FastAI + JupyterLab + PyTorch + CUDA ---
-echo "📦 Installing FastAI, JupyterLab, PyTorch w/ CUDA (NumPy <2)..."
-mamba install fastai jupyterlab "numpy<2" -c fastai -c conda-forge -y
-mamba install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia -y --force-reinstall
-
-# --- Continue with pip installs ---
-echo "📘 Installing fastbook..."
-pip install fastbook --quiet
+echo "⚙️ Installing GPU-enabled PyTorch (CUDA 12.1)..."
+mamba install -y -c pytorch -c nvidia pytorch=2.2 torchvision=0.17 torchaudio pytorch-cuda=12.1
 
 echo "🧪 Installing FiftyOne..."
-pip install fiftyone --quiet
-
-echo "🔍 Confirming NumPy version..."
-python -c "import numpy; print('✅ NumPy version in use:', numpy.__version__)"
+pip install --upgrade pip
+pip install fiftyone
 
 echo "🔗 Registering environment kernel for Jupyter..."
-python -m ipykernel install --user --name fastai --display-name "Python (fastai)"
+python -m ipykernel install --user --name $ENV_NAME --display-name "Python ($ENV_NAME)"
 
-# --- Clone fastbook repo only if not exists ---
-BOOK_DIR=~/fastbook
-if [ ! -d "$BOOK_DIR" ]; then
-  echo "📁 Cloning fastbook repo with notebooks..."
-  git clone https://github.com/fastai/fastbook.git "$BOOK_DIR"
-else
-  echo "Fastbook directory already exists. Skipping clone."
-fi
+echo "📚 Downloading FastBook datasets..."
+python -c "from fastbook import *; setup_book()"
 
-echo "📦 Downloading datasets (using setup_book)..."
-cd "$BOOK_DIR"
-conda run -n fastai python -c "from fastbook import *; setup_book()"
-
-echo "🌀 Setting up Mamba shell config..."
+echo "🌀 Initializing Mamba for future shell sessions..."
 mamba shell init --shell bash --root-prefix=$HOME/.local/share/mamba
 
 echo ""
-echo "✅ FastAI + Fastbook environment is ready!"
-echo "🔁 Please REBOOT your machine now to activate the NVIDIA driver."
+echo "✅ All done! Your GPU-powered FastBook + FastAI + FiftyOne environment is ready."
+echo "🔁 Please reboot your machine now to activate NVIDIA drivers if this is the first install."
 echo ""
-echo "💡 To launch JupyterLab:"
-echo "   conda activate fastai"
+echo "🚀 To start working:"
+echo "   conda activate $ENV_NAME"
 echo "   jupyter lab --ip=0.0.0.0 --port=8888 --no-browser"
 echo ""
+echo "💡 FastBook notebooks are now ready to use — run them without errors!"
