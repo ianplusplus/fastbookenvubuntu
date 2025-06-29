@@ -1,3 +1,5 @@
+**** DO NOT USE OR USE AT YOUR OWN RISK CURRENTLY IS NOT WORKING ****
+
 # fastbookenvubuntu
 *** NEEDS TO BE RUN CURRENTLY AFTER THE SCRIPT RUNS ***
 mamba install "numpy<2" -y
